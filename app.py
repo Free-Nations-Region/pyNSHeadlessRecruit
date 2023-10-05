@@ -26,6 +26,7 @@ import time
 import xml.etree.ElementTree as ET
 import re
 import random
+import signal
 
 # Global Variables & Constants
 VERSION = "0.0.2"
@@ -538,14 +539,21 @@ def send_telegram(telegram_targets):
                 time.sleep(NONRECRUITMENT_TELEGRAM_RATELIMIT)
 
 
-
+def signal_handler(sig, frame):
+    if tg_target > 0:
+        print(f"Recruitment stopped, found {tg_target} and sent {tg_amt} telegrams.")
+        logger.log(logging.INFO, f"Recruitment stopped, found {tg_target} sent {tg_amt} telegrams..")
+    exit()
 
 def main():
     global logger
     logger = Logger()
     load_config()
+    Logger.log(logging.INFO, "Python Process online.")
     display()
-    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.pause()
+
     match choice:
         case "T":
             configure_telegram_menu()
