@@ -539,7 +539,11 @@ def send_telegram(telegram_targets):
                 time.sleep(NONRECRUITMENT_TELEGRAM_RATELIMIT)
 
 
-def signal_handler(sig, frame):
+async def signal_handler():
+    loop = asyncio.get_running_loop()
+    sigint_received = asyncio.Event()
+    loop.add_signal_handler(signal.SIGINT, sigint_received.set)
+    await sigint_received.wait()
     if tg_target > 0:
         print(f"Recruitment stopped, found {tg_target} and sent {tg_amt} telegrams.")
         logger.log(logging.INFO, f"Recruitment stopped, found {tg_target} sent {tg_amt} telegrams..")
@@ -550,9 +554,8 @@ def main():
     logger = Logger()
     load_config()
     logger.log(logging.INFO, "Python Process online.")
+    asyncio.create_task(signal_handler())
     display()
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.pause()
 
     match choice:
         case "T":
