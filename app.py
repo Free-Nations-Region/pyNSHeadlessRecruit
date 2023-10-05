@@ -549,7 +549,7 @@ def main():
     global logger
     logger = Logger()
     load_config()
-    Logger.log(logging.INFO, "Python Process online.")
+    logger.log(logging.INFO, "Python Process online.")
     display()
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()
