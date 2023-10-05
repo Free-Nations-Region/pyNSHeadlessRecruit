@@ -27,6 +27,7 @@ import xml.etree.ElementTree as ET
 import re
 import random
 import signal
+import asyncio
 
 # Global Variables & Constants
 VERSION = "0.0.2"
