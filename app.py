@@ -550,7 +550,7 @@ async def signal_handler():
         logger.log(logging.INFO, f"Recruitment stopped, found {tg_target} sent {tg_amt} telegrams..")
     exit()
 
-def main():
+async def main():
     global logger
     logger = Logger()
     load_config()
@@ -571,6 +571,7 @@ def main():
             exit()
         case _:
             print("Invalid choice. Please try again.")
-            main()
-    
-main()
+            await main()
+
+if __name__ == "__main__":
+    asyncio.run(main())
