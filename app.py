@@ -500,15 +500,15 @@ def finding_telegram_targets():
     if config["recruiting"]["flag_Ejected"]:
         print(f"Found {len(ejected_nations)} ejected nations.")
         print(f"There is {ejected_nations_slots} slots for ejected nations.")
-    if founding_nations_slots > 0 and founding_nations > founding_nations_slots:
+    if founding_nations_slots > 0 and len(founding_nations) > founding_nations_slots:
         pending_telegram_targets.extend(random.sample(founding_nations, founding_nations_slots))
     else:
         pending_telegram_targets.extend(founding_nations)
-    if refounding_nations_slots > 0 and refounding_nations > refounding_nations_slots:
+    if refounding_nations_slots > 0 and len(refounding_nations) > refounding_nations_slots:
         pending_telegram_targets.extend(random.sample(refounding_nations, refounding_nations_slots))
     else:
         pending_telegram_targets.extend(refounding_nations)
-    if ejected_nations_slots > 0 and ejected_nations > ejected_nations_slots:
+    if ejected_nations_slots > 0 and len(ejected_nations) > ejected_nations_slots:
         pending_telegram_targets.extend(random.sample(ejected_nations, ejected_nations_slots))
     else:
         pending_telegram_targets.extend(ejected_nations)
