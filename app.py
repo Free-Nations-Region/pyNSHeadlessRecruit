@@ -425,57 +425,69 @@ def recruit():
     try:
         while True:
 
-            telegram_targets = finding_telegram_targets()
-            print(f"Found {len(telegram_targets)} nations to telegram.")
-            logger.log(logging.DEBUG, f"Found {len(telegram_targets)} nations to telegram.")
-            send_telegram(telegram_targets)
-            print("All telegram sent. Searching for new targets...")
-            logger.log(logging.DEBUG, "All telegram sent. Searching for new targets...")
-            
+            next_target = find_next_target()
+            print(f"Next target: {next_target}")
+            send_telegram(next_target)
+
+
     except KeyboardInterrupt:
         print(f"Recruitment stopped, found {tg_target} and sent {tg_amt} telegrams.")
         logger.log(logging.INFO, f"Recruitment stopped, found {tg_target} sent {tg_amt} telegrams..")
         return
     
-# Finding Telegram Targets - aiming to find and send all telegrams by 2 hours for recruitment telegrams (i.e. 40 telegrams per cycle; tf more than 40 telegram targets just send 40)
-def finding_telegram_targets():
+
+
+# Find the next target which is not telegrammed to telegram
+def find_next_target():
     global tg_target
-    pending_telegram_targets = []
     for nation in config["recruiting"]["individual_nations"]:
         if nation not in tg_sent_history:
             if nation not in config["recruiting"]["blocked_nations"]:
-                pending_telegram_targets.append(nation)
-    if config["recruiting"]["flag_FoundingRefounding"]:
-        # Get founding nations and avaliable slots
-        # Get refounding nations and avaliable slots, note that if there is not enough refounding targets then the program will just send the remaining telegrams to founding nations
+                tg_target += 1
+                return nation
+    options = ['founding', 'refounding', 'ejected']
+    weight = [config["recruiting"]["ratio"]["found"], config["recruiting"]["ratio"]["refound"], config["recruiting"]["ratio"]["ejected"]]
+    selected = random.choices(options, weights=weight, k=1)[0]
+    if selected == "founding":
         time.sleep(0.1) # To prevent API spamming
         request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
         if request.status_code == 200:
-            founding_nations = []
-            refounding_nations = []
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
             for event in happenings:
                 text = event.find("TEXT").text
                 nation = re.search(r"@@(.*)@@", text).group(1)
                 action = re.search(r"@@ was (founded|refounded) in %%", text).group(1)
-                if action == "founded":
-                    if nation not in tg_sent_history:
-                        if nation not in config["recruiting"]["blocked_nations"]:
-                            founding_nations.append(nation)
-                elif action == "refounded":
-                    if nation not in tg_sent_history:
-                        if nation not in config["recruiting"]["blocked_nations"]:
-                            refounding_nations.append(nation)
-        else:
-            print(RED + f"Error: {request.status_code} - {request.text}" + RESET)
-            logger.log(logging.ERROR, f"Error: {request.status_code}")
-    if config["recruiting"]["flag_Ejected"]:
-        # Get ejected nations and avaliable slots
+                if nation not in tg_sent_history and action == "founded":
+                    if nation not in config["recruiting"]["blocked_nations"]:
+                        tg_target += 1
+                        return nation
+        elif request.status_code == 524:
+            time.sleep(30)
+            print("Unable to locate any new founding nations. Waiting 30 seconds before trying again.")
+            return find_next_target()
+    elif selected == "refounding":
+        time.sleep(0.1)
+        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
+        if request.status_code == 200:
+            world = ET.fromstring(request.text)
+            happenings = world.find("HAPPENINGS")
+            for event in happenings:
+                text = event.find("TEXT").text
+                nation = re.search(r"@@(.*)@@", text).group(1)
+                action = re.search(r"@@ was (founded|refounded) in %%", text).group(1)
+                if nation not in tg_sent_history and action == "refounded":
+                    if nation not in config["recruiting"]["blocked_nations"]:
+                        tg_target += 1
+                        return nation
+        elif request.status_code == 524:
+            time.sleep(30)
+            print("Unable to locate any new refounding nations. Waiting 30 seconds before trying again.")
+            return find_next_target()
+    elif selected == "ejected":
         time.sleep(0.1) # To prevent API spamming
         request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER)
         if request.status_code == 200:
-            ejected_nations = []
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
             for event in happenings:
@@ -483,60 +495,31 @@ def finding_telegram_targets():
                 nation = re.search(r"@@(.+?)@@", text).group(1)
                 if nation not in tg_sent_history:
                     if nation not in config["recruiting"]["blocked_nations"]:
-                        ejected_nations.append(nation)
-        else:
-            print(RED + f"Error: {request.status_code} - {request.text}" + RESET)
-            logger.log(logging.ERROR, f"Error: {request.status_code}")
-    # Get nations to telegram
-    founding_nations_slots = int(config["recruiting"]["ratio"]["found"] * config["recruiting"]["target_amt"])
-    refounding_nations_slots = int(config["recruiting"]["ratio"]["refound"] * config["recruiting"]["target_amt"])
-    ejected_nations_slots = int(config["recruiting"]["ratio"]["ejected"] * config["recruiting"]["target_amt"])
-    # Output Stats
-    if config["recruiting"]["flag_FoundingRefounding"]:
-        print(f"Found {len(founding_nations)} founding nations.")
-        print(f"There is {founding_nations_slots} slots for founding nations.")
-        print(f"Found {len(refounding_nations)} refounding nations.")
-        print(f"There is {refounding_nations_slots} slots for refounding nations.")
-    if config["recruiting"]["flag_Ejected"]:
-        print(f"Found {len(ejected_nations)} ejected nations.")
-        print(f"There is {ejected_nations_slots} slots for ejected nations.")
-    if founding_nations_slots > 0 and len(founding_nations) > founding_nations_slots:
-        pending_telegram_targets.extend(random.sample(founding_nations, founding_nations_slots))
-    elif config["recruiting"]["flag_FoundingRefounding"] and config["recruiting"]["ratio"]["found"] > 0:
-        pending_telegram_targets.extend(founding_nations)
-    if refounding_nations_slots > 0 and len(refounding_nations) > refounding_nations_slots:
-        pending_telegram_targets.extend(random.sample(refounding_nations, refounding_nations_slots))
-    elif config["recruiting"]["flag_FoundingRefounding"] and config["recruiting"]["ratio"]["refound"] > 0:
-        pending_telegram_targets.extend(refounding_nations)
-    if ejected_nations_slots > 0 and len(ejected_nations) > ejected_nations_slots:
-        pending_telegram_targets.extend(random.sample(ejected_nations, ejected_nations_slots))
-    elif config["recruiting"]["flag_Ejected"] and config["recruiting"]["ratio"]["ejected"] > 0:
-        pending_telegram_targets.extend(ejected_nations)
-    tg_target += len(pending_telegram_targets)
-    return pending_telegram_targets
-    
+                        tg_target += 1
+                        return nation
+        elif request.status_code == 524:
+            time.sleep(30)
+            print("Unable to locate any new ejected nations. Waiting 30 seconds before trying again.")
+            return find_next_target()
 
 # Send Telegram
-def send_telegram(telegram_targets):
+def send_telegram(telegram_target):
     global tg_amt
-    pending_targets = telegram_targets
-    while len(pending_targets) > 0:
-        current_target = pending_targets.pop(0)
-        try:
-            request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?a=sendTG&client={config['clientkey']}&tgid={telegram['tgid']}&key={telegram['tgsecretkey']}&to={current_target}", headers=REQUESTS_HEADER)
-            print(f"Sent telegram to {current_target}, got {request.status_code}.")
-            logger.log(logging.INFO, f"Sent telegram to {current_target}, got {request.status_code}.")
-        except Exception as e:
-            print(f"Tried to send telegram to {current_target}, but got error: {e}")
-            logger.log(logging.ERROR, f"Tried to send telegram to {current_target}, but got error: {e}")
-        finally:
-            tg_amt += 1
-            tg_sent_history.append(current_target)
-            if telegram["type"] == "Recruitment":
-                time.sleep(RECRUITMENT_TELEGRAM_RATELIMIT)
-            else:
-                time.sleep(NONRECRUITMENT_TELEGRAM_RATELIMIT)
-
+    current_target = telegram_target
+    try:
+        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?a=sendTG&client={config['clientkey']}&tgid={telegram['tgid']}&key={telegram['tgsecretkey']}&to={current_target}", headers=REQUESTS_HEADER)
+        print(f"Sent telegram to {current_target}, got {request.status_code}.")
+        logger.log(logging.INFO, f"Sent telegram to {current_target}, got {request.status_code}.")
+    except Exception as e:
+        print(f"Tried to send telegram to {current_target}, but got error: {e}")
+        logger.log(logging.ERROR, f"Tried to send telegram to {current_target}, but got error: {e}")
+    finally:
+        tg_amt += 1
+        tg_sent_history.append(current_target)
+        if telegram["type"] == "Recruitment":
+            time.sleep(RECRUITMENT_TELEGRAM_RATELIMIT)
+        else:
+            time.sleep(NONRECRUITMENT_TELEGRAM_RATELIMIT)
 
 def main():
     global logger
