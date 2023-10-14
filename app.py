@@ -509,6 +509,11 @@ def send_telegram(telegram_target):
     try:
         request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?a=sendTG&client={config['clientkey']}&tgid={telegram['tgid']}&key={telegram['tgsecretkey']}&to={current_target}", headers=REQUESTS_HEADER)
         print(f"Sent telegram to {current_target}, got {request.status_code}.")
+        if request.status_code == 429:
+            wait_time = int(request.headers["Retry-After"])
+            print(f"We are being rate limited, waiting {wait_time} seconds before trying again.")
+            time.sleep(wait_time)
+            return send_telegram(current_target)
         logger.log(logging.INFO, f"Sent telegram to {current_target}, got {request.status_code}.")
     except Exception as e:
         print(f"Tried to send telegram to {current_target}, but got error: {e}")
