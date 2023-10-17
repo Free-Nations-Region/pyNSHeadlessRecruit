@@ -571,8 +571,10 @@ def isPuppet(nation):
         return True
     if re.search(r"[0-9]+", nation):
         return True
-    if re.search(r"\bM{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\b", nation, flags=re.IGNORECASE):
-        return True
+    match = re.finditer(r"\bM{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\b", nation, flags=re.IGNORECASE)
+    for m in match:
+        if m.group() != "":
+            return True #bodging roman numeral checker, as it likes to match empty strings
     return False
 
 # Return True if a nation cannot be recruited
