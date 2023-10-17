@@ -638,7 +638,7 @@ def main():
                 recruit()
             case "Q":
                 print("Quitting...")
-                Logger.log(logging.DEBUG, "Program terminated by user.")
+                logger.log(logging.DEBUG, "Program terminated by user.")
                 exit()
             case _:
                 print("Invalid choice. Please try again.")
