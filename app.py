@@ -617,7 +617,7 @@ def isBadName(nation):
 
 # Return True if a nation name likely means it is a puppet - likely to get ignored
 def isPuppet(nation):
-    if re.search(r"(puppet|bot|farm|card|founder)", nation, flags=re.IGNORECASE):
+    if re.search(r"(puppet|bot|farm|card|founder|throwaway)", nation, flags=re.IGNORECASE):
         return True
     if re.search(r"[0-9]+", nation):
         return True
