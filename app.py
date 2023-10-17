@@ -451,9 +451,8 @@ def find_next_target():
     for nation in config["recruiting"]["individual_nations"]:
         if nation not in tg_sent_history:
             if nation not in config["recruiting"]["blocked_nations"]:
-                if recruitment_optimizer(nation):
-                    tg_target += 1
-                    return nation
+                tg_target += 1
+                return nation
     options = ['founding', 'refounding', 'ejected']
     weight = [config["recruiting"]["ratio"]["found"], config["recruiting"]["ratio"]["refound"], config["recruiting"]["ratio"]["ejected"]]
     selected = random.choices(options, weights=weight, k=1)[0]
