@@ -19,14 +19,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Imports
-import requests
-import yaml
 import os
 import logging
 import time
 import xml.etree.ElementTree as ET
 import re
 import random
+import requests
+import yaml
 
 # Global Variables & Constants
 VERSION = "0.0.2"
@@ -54,15 +54,29 @@ BLACK = "\033[30m"
 RESET = "\033[0m"
 
 class GNU_GPL_v3_class():
+
+    """GNU GPL v3.0 Boilerplates - combined because they are short"""
+
     def boilerplate(self):
+
+        """Prints the GNU GPL v3.0 boilerplate"""
+
         print("Copyright (C) 2023 Clarissa Au")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type '[L]icense'.")
         print("This is free software, and you are welcome to redistribute it")
         print("under certain conditions; type '[W]arranty' for details.")
+
     def license(self):
+
+        """Prints the GNU GPL v3.0 License"""
+
         with open("LICENSE", 'r') as license_file:
             print(license_file.read())
+
     def warranty(self):
+
+        """Prints the GNU GPL v3.0 Warranty"""
+
         print("BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY ")
         print("FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN ")
         print("OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES ")
@@ -75,6 +89,9 @@ class GNU_GPL_v3_class():
 
 # Quickstarting Recruitment
 def quickstart():
+
+    """Quickstart Recruitment from quickstart.yml"""
+
     global quickstart_config
     global telegram
     try:
@@ -94,12 +111,16 @@ def quickstart():
             print("---------------------------------------------------------")
             print("Python Process online.")
             print("Quickstart Enabled.")
-            with open(os.path.join(PWD, "telegrams", quickstart_config["target_telegram_file"]), 'r') as telegram_file:
+            with open(
+                os.path.join(PWD, "telegrams", quickstart_config["target_telegram_file"])
+                , 'r'
+                ) as telegram_file:
                 telegram = yaml.safe_load(telegram_file)
             if quickstart_config["skip_confirmation"]:
                 recruitment_loop()
             else:
                 recruit()
+            return True
         else:
             return False
     else:
@@ -107,6 +128,9 @@ def quickstart():
 
 # Load config file if it exists
 def load_config():
+
+    """Load config.yml"""
+
     global config
     try:
         with open("config.yml", 'r') as ymlfile:
@@ -130,7 +154,10 @@ def load_config():
         }
         with open("config.yml", 'w') as ymlfile:
             yaml.dump(default_config, ymlfile)
-        print(RED + "Config file not found. A new config file has been created. Please edit the config file and restart the program." + RESET)
+        print(RED
+              + "Config file not found. A new config file has been created."
+              + "Please edit the config file and restart the program."
+              + RESET)
         exit()
     finally:
         logging.debug("Config file loaded.")
@@ -138,14 +165,25 @@ def load_config():
 # Logger
 class Logger(object):
 
+    """Logger class to log messages to log file and display them to the user"""
+
     def __init__(self):
+
+        """Initialize Logger"""
+
         self.storage = []
-        logging.basicConfig(filename='headlessNSPythonRecruiter.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+        logging.basicConfig(
+            filename='headlessNSPythonRecruiter.log',
+            level=logging.DEBUG,
+            format='%(asctime)s %(levelname)s %(message)s')
         logging.debug("headlessNSPythonRecruiter v" + VERSION + " by Clarissa Au")
         logging.debug("Licensed under GNU GPL v3.0 License")
         logging.debug("Logging Initialized.")
 
     def display(self, level, amount):
+
+        """Display logs to user"""
+
         for log in reversed(self.storage):
             if log.level >= level:
                 print(log.message)
@@ -157,18 +195,30 @@ class Logger(object):
             amount -= 1
 
     def log(self, level, message):
+
+        """Log message to log file and display to user"""
+
         self.storage.append(Log(level, message))
-    
+
 
 class Log(object):
+
+    """Log class to store log messages"""
+
     def __init__(self, level, message):
+
+        """Initialize a Log"""
+
         self.message = message
         self.level = level
         logging.log(level, message)
-        
+
 
 # Display main menu
 def display():
+
+    """Display main menu"""
+
     global choice
     print("---------------------------------------------------------")
     print("headlessNSPythonRecruiter v" + VERSION + " by Clarissa Au")
@@ -187,6 +237,9 @@ def display():
 
 # Configure Telegram - Menu
 def configure_telegram_menu():
+
+    """Configure Telegram Menu"""
+
     while True:
         print("---------------------------------------------------------")
         print("Configure Telegram - Menu")
@@ -214,6 +267,9 @@ def configure_telegram_menu():
 
 # Configure Telegram - Select
 def select_telegram():
+
+    """Select Telegram Menu"""
+
     global telegram
     print("---------------------------------------------------------")
     print("Configure Telegram - Select")
@@ -226,7 +282,9 @@ def select_telegram():
         print(f"{i}. {os.listdir(telegram_folder)[i]}")
     choice = input("> ")
     try:
-        with open(os.path.join(telegram_folder, os.listdir(telegram_folder)[int(choice)]), 'r') as telegram_file:
+        with open(
+            os.path.join(telegram_folder, os.listdir(telegram_folder)[int(choice)])
+            , 'r') as telegram_file:
             telegram = yaml.safe_load(telegram_file)
             print(f"Telegram {os.listdir(telegram_folder)[int(choice)]} selected.")
             logger.log(logging.INFO, f"Telegram {os.listdir(telegram_folder)[int(choice)]} selected.")
@@ -247,6 +305,9 @@ def select_telegram():
 
 # Configure Telegram - Create
 def create_telegram():
+
+    """Create Telegram Menu"""
+
     global telegram
     print("---------------------------------------------------------")
     print("Configure Telegram - Create")
@@ -299,6 +360,9 @@ def create_telegram():
 
 # Configure Telegram - Delete
 def delete_telegram():
+
+    """Delete Telegram Menu"""
+
     print("---------------------------------------------------------")
     print("Configure Telegram - Delete")
     print("Delete a Telegram.")
@@ -328,10 +392,13 @@ def delete_telegram():
         logger.log(logging.DEBUG, e)
     finally:
         configure_telegram_menu()
-        return
+    return
 
 # Select Recepients - Menu
 def select_recepients_menu():
+
+    """Select Recepients Menu"""
+
     while True:
         print("---------------------------------------------------------")
         print("Select Recepients - Menu")
@@ -355,6 +422,9 @@ def select_recepients_menu():
 
 # Select Recepients - Add
 def add_recepients():
+
+    """Add Recepients Menu"""
+
     print("---------------------------------------------------------")
     print("Select Recepients - Add")
     print("Toggle a group of recepient.")
@@ -409,6 +479,9 @@ def add_recepients():
 
 # Select Recepients - Remove
 def remove_recepients():
+
+    """Remove Recepients Menu"""
+
     print("---------------------------------------------------------")
     print("Select Recepients - Remove")
     print("Set a receipient to not be messaged.")
@@ -442,6 +515,9 @@ def remove_recepients():
 
 # Recruit
 def recruit():
+
+    """Recruiting"""
+
     print("---------------------------------------------------------")
     print("Recruit")
     print("Confirmation:")
@@ -483,8 +559,11 @@ def recruit():
     print("---------------------------------------------------------")
     # Get people to telegram -> send them telegram -> rinse and repeat
     recruitment_loop()
-    
+
 def recruitment_loop():
+
+    """Recruitment Loop"""
+
     while True:
         next_target = find_next_target()
         print(f"Next target: {next_target}")
@@ -492,6 +571,9 @@ def recruitment_loop():
 
 # Find the next target which is not telegrammed to telegram
 def find_next_target():
+
+    """Probablistically find the next target which is not telegrammed to telegram"""
+
     global tg_target
     for nation in config["recruiting"]["individual_nations"]:
         if nation not in tg_sent_history:
@@ -503,7 +585,7 @@ def find_next_target():
     selected = random.choices(options, weights=weight, k=1)[0]
     if selected == "founding":
         time.sleep(0.1) # To prevent API spamming
-        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
+        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -524,7 +606,7 @@ def find_next_target():
             return find_next_target()
     elif selected == "refounding":
         time.sleep(0.1)
-        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
+        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -545,7 +627,7 @@ def find_next_target():
             return find_next_target()
     elif selected == "ejected":
         time.sleep(0.1) # To prevent API spamming
-        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER)
+        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER)
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -566,10 +648,15 @@ def find_next_target():
 
 # Send Telegram
 def send_telegram(telegram_target):
+
+    """Send Telegram to a nation"""
+
     global tg_amt
     current_target = telegram_target
     try:
-        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?a=sendTG&client={config['clientkey']}&tgid={telegram['tgid']}&key={telegram['tgsecretkey']}&to={current_target}", headers=REQUESTS_HEADER)
+        request = requests.get(
+            f"https://www.nationstates.net/cgi-bin/api.cgi?a=sendTG&client={config['clientkey']}&tgid={telegram['tgid']}&key={telegram['tgsecretkey']}&to={current_target}", 
+            headers=REQUESTS_HEADER)
         print(f"Sent telegram to {current_target}, got {request.status_code}.")
         if request.status_code == 429:
             wait_time = int(request.headers["Retry-After"])
@@ -591,6 +678,9 @@ def send_telegram(telegram_target):
 # Cleanse the nation given filters - if they fail the filters they will not be recruited
 # True means go on to recruit, False means do not recruit and try another
 def recruitment_optimizer(nation):
+
+    """Optimize Recruitment"""
+
     if not config['recruiting']['optimization']:
         return True
     else:
@@ -610,6 +700,9 @@ def recruitment_optimizer(nation):
 
 # Return true if a nation name contains bad words - likely to get No Such Nation errors and waste 180 seconds
 def isBadName(nation):
+
+    """Check if a nation name contains bad words"""
+
     if re.search(r"(moderator|reichs|pedo)", nation, flags=re.IGNORECASE):
         return True
     else:
@@ -617,6 +710,9 @@ def isBadName(nation):
 
 # Return True if a nation name likely means it is a puppet - likely to get ignored
 def isPuppet(nation):
+
+    """Check if a nation name likely means it is a puppet"""
+
     if re.search(r"(puppet|bot|farm|card|founder|throwaway)", nation, flags=re.IGNORECASE):
         return True
     if re.search(r"[0-9]+", nation):
@@ -629,6 +725,9 @@ def isPuppet(nation):
 
 # Return True if a nation cannot be recruited
 def cannotRecruit(nation):
+
+    """Check if a nation cannot be recruited"""
+
     try:
         request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?nation={nation}&q=tgcanrecruit", headers=REQUESTS_HEADER)
         if request.status_code == 200:
@@ -644,13 +743,16 @@ def cannotRecruit(nation):
         return True
 
 def main():
+
+    """Main Logic Loop"""
+
     global logger
     global GNU_GPL_v3
     GNU_GPL_v3 = GNU_GPL_v3_class()
     logger = Logger()
     load_config()
     quickstarts = quickstart()
-    if quickstarts == False:
+    if not quickstarts:
         logger.log(logging.INFO, "Python Process online.")
         GNU_GPL_v3.boilerplate()
         display()
@@ -675,5 +777,5 @@ def main():
                 print("Invalid choice. Please try again.")
                 main()
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()
