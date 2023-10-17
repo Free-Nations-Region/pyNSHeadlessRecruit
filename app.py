@@ -1,8 +1,9 @@
 #!/usr/bin/python3 -u
 #    headlessNSPythonRecruiter
 #    A headless Python3 script to automate sending API request to NationStates API to recruit nations.
-#    By Clarissa Au
+#    By Clarissa Au @ clarissayuenyee@gmail.com
 #    Under GNU GPL v3.0 License
+#    Copyright (C) 2023 Clarissa Au
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -51,6 +52,26 @@ CYAN = "\033[36m"
 WHITE = "\033[37m"
 BLACK = "\033[30m"
 RESET = "\033[0m"
+
+class GNU_GPL_v3_class():
+    def boilerplate():
+        print("Copyright (C) 2023 Clarissa Au")
+        print("This program comes with ABSOLUTELY NO WARRANTY; for details type '[L]icense'.")
+        print("This is free software, and you are welcome to redistribute it")
+        print("under certain conditions; type '[W]arranty' for details.")
+    def license():
+        with open("LICENSE", 'r') as license_file:
+            print(license_file.read())
+    def warranty():
+        print("BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY ")
+        print("FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN ")
+        print("OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES ")
+        print("PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED ")
+        print("OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF ")
+        print("MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS ")
+        print("TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE ")
+        print("PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, ")
+        print("REPAIR OR CORRECTION.")
 
 # Quickstarting Recruitment
 def quickstart():
@@ -622,13 +643,15 @@ def cannotRecruit(nation):
 
 def main():
     global logger
+    global GNU_GPL_v3
+    GNU_GPL_v3 = GNU_GPL_v3_class()
     logger = Logger()
     load_config()
     quickstarts = quickstart()
     if quickstarts == False:
         logger.log(logging.INFO, "Python Process online.")
         display()
-
+        GNU_GPL_v3.boilerplate()
         match choice:
             case "T":
                 configure_telegram_menu()
@@ -640,6 +663,12 @@ def main():
                 print("Quitting...")
                 logger.log(logging.DEBUG, "Program terminated by user.")
                 exit()
+            case "L":
+                GNU_GPL_v3.license()
+                main()
+            case "W":
+                GNU_GPL_v3.warranty()
+                main()
             case _:
                 print("Invalid choice. Please try again.")
                 main()
