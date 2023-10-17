@@ -71,7 +71,7 @@ def quickstart():
     if quickstart_config is not None:
         if quickstart_config["use_quickstart"]:
             print("---------------------------------------------------------")
-            print("Python Process Loaded.")
+            print("Python Process online.")
             print("Quickstart Enabled.")
             with open(os.path.join(PWD, "telegrams", quickstart_config["target_telegram_file"]), 'r') as telegram_file:
                 telegram = yaml.safe_load(telegram_file)
