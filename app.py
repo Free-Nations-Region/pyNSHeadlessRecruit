@@ -52,6 +52,36 @@ WHITE = "\033[37m"
 BLACK = "\033[30m"
 RESET = "\033[0m"
 
+# Quickstarting Recruitment
+def quickstart():
+    global quickstart_config
+    global telegram
+    try:
+        with open("quickstart.yml", 'r') as ymlfile:
+            quickstart_config = yaml.safe_load(ymlfile)
+    except FileNotFoundError:
+        default_quickstart_config = {
+            "use_quickstart": False,
+            "target_telegram_file": "recruitment.yml",
+            "skip_confirmation" : False,
+        }
+        with open("quickstart.yml", 'w') as ymlfile:
+            yaml.dump(default_quickstart_config, ymlfile)
+        quickstart_config = None
+    if quickstart_config is not None:
+        if quickstart_config["use_quickstart"]:
+            print("---------------------------------------------------------")
+            print("Python Process Loaded.")
+            print("Quickstart Enabled.")
+            with open(os.path.join(PWD, "telegrams", quickstart_config["target_telegram_file"]), 'r') as telegram_file:
+                telegram = yaml.safe_load(telegram_file)
+            if quickstart_config["skip_confirmation"]:
+                recruitment_loop()
+            else:
+                recruit()
+    else:
+        return False
+
 # Load config file if it exists
 def load_config():
     global config
@@ -429,21 +459,13 @@ def recruit():
         logger.log(logging.INFO, "Recruitment started.")
     print("---------------------------------------------------------")
     # Get people to telegram -> send them telegram -> rinse and repeat
-    print("Use Ctrl+C to stop recruitment.")
-    try:
-        while True:
-
-            next_target = find_next_target()
-            print(f"Next target: {next_target}")
-            send_telegram(next_target)
-
-
-    except KeyboardInterrupt:
-        print(f"Recruitment stopped, found {tg_target} and sent {tg_amt} telegrams.")
-        logger.log(logging.INFO, f"Recruitment stopped, found {tg_target} sent {tg_amt} telegrams..")
-        return
+    recruitment_loop()
     
-
+def recruitment_loop():
+    while True:
+        next_target = find_next_target()
+        print(f"Next target: {next_target}")
+        send_telegram(next_target)
 
 # Find the next target which is not telegrammed to telegram
 def find_next_target():
@@ -602,23 +624,25 @@ def main():
     global logger
     logger = Logger()
     load_config()
-    logger.log(logging.INFO, "Python Process online.")
-    display()
+    quickstarts = quickstart()
+    if quickstarts == False:
+        logger.log(logging.INFO, "Python Process online.")
+        display()
 
-    match choice:
-        case "T":
-            configure_telegram_menu()
-        case "S":
-            select_recepients_menu()
-        case "R":
-            recruit()
-        case "Q":
-            print("Quitting...")
-            Logger.log(logging.DEBUG, "Program terminated by user.")
-            exit()
-        case _:
-            print("Invalid choice. Please try again.")
-            main()
+        match choice:
+            case "T":
+                configure_telegram_menu()
+            case "S":
+                select_recepients_menu()
+            case "R":
+                recruit()
+            case "Q":
+                print("Quitting...")
+                Logger.log(logging.DEBUG, "Program terminated by user.")
+                exit()
+            case _:
+                print("Invalid choice. Please try again.")
+                main()
 
 if __name__ == "__main__": 
     main()
