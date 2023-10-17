@@ -471,6 +471,8 @@ def find_next_target():
                         if recruitment_optimizer(nation):
                             tg_target += 1
                             return nation
+                        else:
+                            tg_sent_history.append(nation) #no need to check this nation again
         elif request.status_code == 524:
             time.sleep(30)
             print("Unable to locate any new founding nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
@@ -490,6 +492,8 @@ def find_next_target():
                         if recruitment_optimizer(nation):
                             tg_target += 1
                             return nation
+                        else:
+                            tg_sent_history.append(nation) #no need to check this nation again
         elif request.status_code == 524:
             time.sleep(30)
             print("Unable to locate any new refounding nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
@@ -508,6 +512,8 @@ def find_next_target():
                         if recruitment_optimizer(nation):
                             tg_target += 1
                             return nation
+                        else:
+                            tg_sent_history.append(nation) #no need to check this nation again
         elif request.status_code == 524:
             time.sleep(30)
             print("Unable to locate any new ejected nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
