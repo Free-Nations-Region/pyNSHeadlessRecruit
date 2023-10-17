@@ -19,6 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Imports
+import sys
 import os
 import logging
 import time
@@ -28,19 +29,14 @@ import random
 import requests
 import yaml
 
-# Global Variables & Constants
+# Global Constants
 VERSION = "0.0.2"
 USERAGENT = "headlessNSPythonRecruiter/" + VERSION + " (by Clarissa Au)"
 REQUESTS_HEADER = {"User-Agent": USERAGENT}
-choice = None
-logger = None
-telegram = None
-tg_target = 0
-tg_amt = 0
-tg_sent_history = [] # List of nations that have been sent telegram, will not be sent telegram until program restarts
 PWD = os.getcwd()
 RECRUITMENT_TELEGRAM_RATELIMIT = 180 # 3 minutes
 NONRECRUITMENT_TELEGRAM_RATELIMIT = 30 # 30 seconds
+REQ_TIMEOUT = 5 # 5 seconds
 
 # Color Codes
 RED = "\033[31m"
@@ -53,6 +49,16 @@ WHITE = "\033[37m"
 BLACK = "\033[30m"
 RESET = "\033[0m"
 
+
+# Global Variables
+choice = None
+logger = None
+telegram = None
+tg_target = 0
+tg_amt = 0
+tg_sent_history = [] # List of nations that have been sent telegram, will not be sent telegram until program restarts
+
+# GNU GPL v3.0 Boilerplates
 class GNU_GPL_v3_class():
 
     """GNU GPL v3.0 Boilerplates - combined because they are short"""
@@ -70,7 +76,7 @@ class GNU_GPL_v3_class():
 
         """Prints the GNU GPL v3.0 License"""
 
-        with open("LICENSE", 'r') as license_file:
+        with open("LICENSE", 'r', encoding="utf-8") as license_file:
             print(license_file.read())
 
     def warranty(self):
@@ -95,7 +101,7 @@ def quickstart():
     global quickstart_config
     global telegram
     try:
-        with open("quickstart.yml", 'r') as ymlfile:
+        with open("quickstart.yml", 'r', encoding="utf-8") as ymlfile:
             quickstart_config = yaml.safe_load(ymlfile)
     except FileNotFoundError:
         default_quickstart_config = {
@@ -103,7 +109,7 @@ def quickstart():
             "target_telegram_file": "recruitment.yml",
             "skip_confirmation" : False,
         }
-        with open("quickstart.yml", 'w') as ymlfile:
+        with open("quickstart.yml", 'w', encoding="utf-8") as ymlfile:
             yaml.dump(default_quickstart_config, ymlfile)
         quickstart_config = None
     if quickstart_config is not None:
@@ -114,6 +120,7 @@ def quickstart():
             with open(
                 os.path.join(PWD, "telegrams", quickstart_config["target_telegram_file"])
                 , 'r'
+                , encoding="utf-8"
                 ) as telegram_file:
                 telegram = yaml.safe_load(telegram_file)
             if quickstart_config["skip_confirmation"]:
@@ -121,10 +128,7 @@ def quickstart():
             else:
                 recruit()
             return True
-        else:
-            return False
-    else:
-        return False
+    return False
 
 # Load config file if it exists
 def load_config():
@@ -133,7 +137,7 @@ def load_config():
 
     global config
     try:
-        with open("config.yml", 'r') as ymlfile:
+        with open("config.yml", 'r', encoding="utf-8") as ymlfile:
             config = yaml.safe_load(ymlfile)
     except FileNotFoundError:
         default_config = {
@@ -152,18 +156,18 @@ def load_config():
                 }
             }
         }
-        with open("config.yml", 'w') as ymlfile:
+        with open("config.yml", 'w', encoding="utf-8") as ymlfile:
             yaml.dump(default_config, ymlfile)
         print(RED
               + "Config file not found. A new config file has been created."
               + "Please edit the config file and restart the program."
               + RESET)
-        exit()
+        sys.exit()
     finally:
         logging.debug("Config file loaded.")
 
 # Logger
-class Logger(object):
+class Logger():
 
     """Logger class to log messages to log file and display them to the user"""
 
@@ -201,7 +205,7 @@ class Logger(object):
         self.storage.append(Log(level, message))
 
 
-class Log(object):
+class Log():
 
     """Log class to store log messages"""
 
@@ -283,8 +287,9 @@ def select_telegram():
     choice = input("> ")
     try:
         with open(
-            os.path.join(telegram_folder, os.listdir(telegram_folder)[int(choice)])
-            , 'r') as telegram_file:
+            os.path.join(
+                telegram_folder, os.listdir(telegram_folder)[int(choice)]), 'r', encoding="utf-8"
+            ) as telegram_file:
             telegram = yaml.safe_load(telegram_file)
             print(f"Telegram {os.listdir(telegram_folder)[int(choice)]} selected.")
             logger.log(logging.INFO, f"Telegram {os.listdir(telegram_folder)[int(choice)]} selected.")
@@ -346,17 +351,16 @@ def create_telegram():
             "tgsecretkey": tgsecretkey,
             "type": isrecruitment
         }
-        with open(os.path.join(telegram_folder, name + ".yml"), 'w') as telegram_file:
+        with open(os.path.join(telegram_folder, name + ".yml"), 'w', encoding="utf-8") as telegram_file:
             yaml.dump(telegram, telegram_file)
         print(f"Telegram {name} created.")
         logger.log(logging.INFO, f"Telegram {name} created.")
         configure_telegram_menu()
         return
-    else:
-        print("Telegram discarded.")
-        logger.log(logging.INFO, "Telegram discarded.")
-        configure_telegram_menu()
-        return
+    print("Telegram discarded.")
+    logger.log(logging.INFO, "Telegram discarded.")
+    configure_telegram_menu()
+    return
 
 # Configure Telegram - Delete
 def delete_telegram():
@@ -436,7 +440,7 @@ def add_recepients():
     print("[B]ack")
     print("")
     choice = input("> ")
-    with open("config.yml", 'r') as ymlfile:
+    with open("config.yml", 'r', encoding="utf-8") as ymlfile:
         config = yaml.safe_load(ymlfile)
     match choice:
         case "F":
@@ -472,7 +476,7 @@ def add_recepients():
             return
         case _:
             print("Invalid choice. Please try again.")
-    with open("config.yml", 'w') as ymlfile:
+    with open("config.yml", 'w', encoding="utf-8") as ymlfile:
         yaml.dump(config, ymlfile)
     select_recepients_menu()
     return
@@ -501,7 +505,7 @@ def remove_recepients():
             config["recruiting"]["blocked_nations"].append(nation)
             logger.log(logging.INFO, f"{nation} will not be messaged.")
             print(YELLOW + f"{nation} will not be messaged." + RESET)
-            with open("config.yml", 'w') as ymlfile:
+            with open("config.yml", 'w', encoding="utf-8") as ymlfile:
                 yaml.dump(config, ymlfile)
             select_recepients_menu()
             return
@@ -585,7 +589,7 @@ def find_next_target():
     selected = random.choices(options, weights=weight, k=1)[0]
     if selected == "founding":
         time.sleep(0.1) # To prevent API spamming
-        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
+        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -606,7 +610,7 @@ def find_next_target():
             return find_next_target()
     elif selected == "refounding":
         time.sleep(0.1)
-        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER)
+        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -627,7 +631,7 @@ def find_next_target():
             return find_next_target()
     elif selected == "ejected":
         time.sleep(0.1) # To prevent API spamming
-        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER)
+        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -656,7 +660,8 @@ def send_telegram(telegram_target):
     try:
         request = requests.get(
             f"https://www.nationstates.net/cgi-bin/api.cgi?a=sendTG&client={config['clientkey']}&tgid={telegram['tgid']}&key={telegram['tgsecretkey']}&to={current_target}", 
-            headers=REQUESTS_HEADER)
+            headers=REQUESTS_HEADER,
+            timeout=REQ_TIMEOUT)
         print(f"Sent telegram to {current_target}, got {request.status_code}.")
         if request.status_code == 429:
             wait_time = int(request.headers["Retry-After"])
@@ -729,7 +734,7 @@ def cannotRecruit(nation):
     """Check if a nation cannot be recruited"""
 
     try:
-        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?nation={nation}&q=tgcanrecruit", headers=REQUESTS_HEADER)
+        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?nation={nation}&q=tgcanrecruit", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
         if request.status_code == 200:
             nation = ET.fromstring(request.text)
             canrecruit = nation.find("TGCANRECRUIT").text
