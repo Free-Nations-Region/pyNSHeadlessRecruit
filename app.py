@@ -560,14 +560,14 @@ def recruitment_optimizer(nation):
 
 # Return true if a nation name contains bad words - likely to get No Such Nation errors and waste 180 seconds
 def isBadName(nation):
-    if re.search(r"(moderator|reichs|nuts|pedo)", nation):
+    if re.search(r"(moderator|reichs|nuts|pedo)", nation, flags=re.IGNORECASE):
         return True
     else:
         return False
 
 # Return True if a nation name likely means it is a puppet - likely to get ignored
 def isPuppet(nation):
-    if re.search(r"(puppet|bot|farm|card)", nation):
+    if re.search(r"(puppet|bot|farm|card|founder)", nation, flags=re.IGNORECASE):
         return True
     if re.search(r"[0-9]+", nation):
         return True
