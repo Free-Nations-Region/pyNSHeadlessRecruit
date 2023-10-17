@@ -54,15 +54,15 @@ BLACK = "\033[30m"
 RESET = "\033[0m"
 
 class GNU_GPL_v3_class():
-    def boilerplate():
+    def boilerplate(self):
         print("Copyright (C) 2023 Clarissa Au")
         print("This program comes with ABSOLUTELY NO WARRANTY; for details type '[L]icense'.")
         print("This is free software, and you are welcome to redistribute it")
         print("under certain conditions; type '[W]arranty' for details.")
-    def license():
+    def license(self):
         with open("LICENSE", 'r') as license_file:
             print(license_file.read())
-    def warranty():
+    def warranty(self):
         print("BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY ")
         print("FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN ")
         print("OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES ")
@@ -100,6 +100,8 @@ def quickstart():
                 recruitment_loop()
             else:
                 recruit()
+        else:
+            return False
     else:
         return False
 
@@ -650,8 +652,8 @@ def main():
     quickstarts = quickstart()
     if quickstarts == False:
         logger.log(logging.INFO, "Python Process online.")
-        display()
         GNU_GPL_v3.boilerplate()
+        display()
         match choice:
             case "T":
                 configure_telegram_menu()
