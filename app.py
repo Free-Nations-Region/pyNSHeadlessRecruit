@@ -67,12 +67,12 @@ def load_config():
                 "flag_Ejected": False,
                 "individual_nations": [],
                 "blocked_nations": [],
+                "optimization": False,
                 "ratio":{
                     "found": 0.8,
                     "refound": 0.2,
                     "ejected": 0.0,
-                },
-                "target_amt": 40
+                }
             }
         }
         with open("config.yml", 'w') as ymlfile:
@@ -396,18 +396,26 @@ def recruit():
     print(f"Telegram: {telegram['name']}")
     print(f"Type: {telegram['type']}")
     print("")
-    if config["recruiting"]["flag_FoundingRefounding"]:
-        print(GREEN + "Founding/Refounding nations will be messaged." + RESET)
+    if config["recruiting"]["ratio"]["found"] > 0:
+        print(GREEN + f"Founding nations will be messaged with {config['recruiting']['ratio']['found']*100}% probability." + RESET)
     else:
-        print(RED + "Founding/Refounding nations will not be messaged." + RESET)
-    if config["recruiting"]["flag_Ejected"]:
-        print(GREEN + "Ejected nations will be messaged." + RESET)
+        print(RED + "Founding nations will not be messaged." + RESET)
+    if config["recruiting"]["ratio"]["refound"] > 0:
+        print(GREEN + f"Refounding nations will be messaged with {config['recruiting']['ratio']['refound']*100}% probability." + RESET)
+    else:
+        print(RED + "Refounding nations will not be messaged." + RESET)
+    if config["recruiting"]["ratio"]["ejected"] > 0:
+        print(GREEN + f"Ejected nations will be messaged with {config['recruiting']['ratio']['ejected']*100}% probability." + RESET)
     else:
         print(RED + "Ejected nations will not be messaged." + RESET)
     for nation in config["recruiting"]["individual_nations"]:
         print(CYAN + f"{nation} will be messaged." + RESET)
     for nation in config["recruiting"]["blocked_nations"]:
         print(YELLOW + f"{nation} will not be messaged." + RESET)
+    if config["recruiting"]["optimization"]:
+        print(GREEN + "Optimizations are enabled." + RESET)
+    else:
+        print(RED + "Optimizations are disabled." + RESET)
     print("")
     print("Is this correct? [Y/N]")
     choice = input("> ")
@@ -443,8 +451,9 @@ def find_next_target():
     for nation in config["recruiting"]["individual_nations"]:
         if nation not in tg_sent_history:
             if nation not in config["recruiting"]["blocked_nations"]:
-                tg_target += 1
-                return nation
+                if recruitment_optimizer(nation):
+                    tg_target += 1
+                    return nation
     options = ['founding', 'refounding', 'ejected']
     weight = [config["recruiting"]["ratio"]["found"], config["recruiting"]["ratio"]["refound"], config["recruiting"]["ratio"]["ejected"]]
     selected = random.choices(options, weights=weight, k=1)[0]
@@ -460,11 +469,12 @@ def find_next_target():
                 action = re.search(r"@@ was (founded|refounded) in %%", text).group(1)
                 if nation not in tg_sent_history and action == "founded":
                     if nation not in config["recruiting"]["blocked_nations"]:
-                        tg_target += 1
-                        return nation
+                        if recruitment_optimizer(nation):
+                            tg_target += 1
+                            return nation
         elif request.status_code == 524:
             time.sleep(30)
-            print("Unable to locate any new founding nations. Waiting 30 seconds before trying again.")
+            print("Unable to locate any new founding nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
             return find_next_target()
     elif selected == "refounding":
         time.sleep(0.1)
@@ -478,11 +488,12 @@ def find_next_target():
                 action = re.search(r"@@ was (founded|refounded) in %%", text).group(1)
                 if nation not in tg_sent_history and action == "refounded":
                     if nation not in config["recruiting"]["blocked_nations"]:
-                        tg_target += 1
-                        return nation
+                        if recruitment_optimizer(nation):
+                            tg_target += 1
+                            return nation
         elif request.status_code == 524:
             time.sleep(30)
-            print("Unable to locate any new refounding nations. Waiting 30 seconds before trying again.")
+            print("Unable to locate any new refounding nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
             return find_next_target()
     elif selected == "ejected":
         time.sleep(0.1) # To prevent API spamming
@@ -495,11 +506,12 @@ def find_next_target():
                 nation = re.search(r"@@(.+?)@@", text).group(1)
                 if nation not in tg_sent_history:
                     if nation not in config["recruiting"]["blocked_nations"]:
-                        tg_target += 1
-                        return nation
+                        if recruitment_optimizer(nation):
+                            tg_target += 1
+                            return nation
         elif request.status_code == 524:
             time.sleep(30)
-            print("Unable to locate any new ejected nations. Waiting 30 seconds before trying again.")
+            print("Unable to locate any new ejected nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
             return find_next_target()
 
 # Send Telegram
@@ -525,6 +537,51 @@ def send_telegram(telegram_target):
             time.sleep(RECRUITMENT_TELEGRAM_RATELIMIT)
         else:
             time.sleep(NONRECRUITMENT_TELEGRAM_RATELIMIT)
+
+# Cleanse the nation given filters - if they fail the filters they will not be recruited
+# True means go on to recruit, False means do not recruit and try another
+def recruitment_optimizer(nation):
+    if not config['recruiting']['optimization']:
+        return True
+    else:
+        if isBadName(nation):
+            return False
+        if isPuppet(nation):
+            return False
+        if cannotRecruit(nation):
+            return False
+        return True
+
+# Return true if a nation name contains bad words - likely to get No Such Nation errors and waste 180 seconds
+def isBadName(nation):
+    if re.search(r"(moderator|reichs|nuts|pedo)", nation):
+        return True
+    else:
+        return False
+
+def isPuppet(nation):
+    if re.search(r"(puppet|bot|farm|card)", nation):
+        return True
+    if re.search(r"[0-9]+", nation):
+        return True
+    if re.search(r"\bM{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\b", nation, flags=re.IGNORECASE):
+        return True
+    return False
+
+def cannotRecruit(nation):
+    try:
+        request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?nation={nation}&q=tgcanrecruit", headers=REQUESTS_HEADER)
+        if request.status_code == 200:
+            nation = ET.fromstring(request.text)
+            canrecruit = nation.find("TGCANRECRUIT").text
+            if canrecruit == "1":
+                return False
+            else:
+                return True
+        else:
+            return True
+    except:
+        return True
 
 def main():
     global logger
