@@ -565,6 +565,7 @@ def isBadName(nation):
     else:
         return False
 
+# Return True if a nation name likely means it is a puppet - likely to get ignored
 def isPuppet(nation):
     if re.search(r"(puppet|bot|farm|card)", nation):
         return True
@@ -574,6 +575,7 @@ def isPuppet(nation):
         return True
     return False
 
+# Return True if a nation cannot be recruited
 def cannotRecruit(nation):
     try:
         request = requests.get(f"https://www.nationstates.net/cgi-bin/api.cgi?nation={nation}&q=tgcanrecruit", headers=REQUESTS_HEADER)
