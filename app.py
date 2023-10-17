@@ -610,7 +610,7 @@ def recruitment_optimizer(nation):
 
 # Return true if a nation name contains bad words - likely to get No Such Nation errors and waste 180 seconds
 def isBadName(nation):
-    if re.search(r"(moderator|reichs|nuts|pedo)", nation, flags=re.IGNORECASE):
+    if re.search(r"(moderator|reichs|pedo)", nation, flags=re.IGNORECASE):
         return True
     else:
         return False
