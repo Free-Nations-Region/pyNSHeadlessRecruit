@@ -545,10 +545,16 @@ def recruitment_optimizer(nation):
         return True
     else:
         if isBadName(nation):
+            print(f"{nation} is a bad name, skipping.")
+            logger.log(logging.DEBUG, f"{nation} is a bad name, skipping.")
             return False
         if isPuppet(nation):
+            print(f"{nation} is probably a puppet, skipping.")
+            logger.log(logging.DEBUG, f"{nation} is probably a puppet, skipping.")
             return False
         if cannotRecruit(nation):
+            print(f"{nation} cannot be recruited, skipping.")
+            logger.log(logging.DEBUG, f"{nation} cannot be recruited, skipping.")
             return False
         return True
 
