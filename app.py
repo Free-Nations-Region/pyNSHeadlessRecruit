@@ -713,7 +713,7 @@ def isBadName(nation):
 
     """Check if a nation name contains bad words"""
 
-    if re.search(r"(moderator|reichs|pedo)", nation, flags=re.IGNORECASE):
+    if re.search(r"(moderator|reichs|pedo|\btos\b)", nation, flags=re.IGNORECASE):
         return True
     else:
         return False
