@@ -701,6 +701,11 @@ def recruitment_optimizer(nation):
             print(f"{nation} cannot be recruited, skipping.")
             logger.log(logging.DEBUG, f"{nation} cannot be recruited, skipping.")
             return False
+        if nation is None:
+            print(f"One does not simply recruit from None, skipping.")
+            logger.log(logging.DEBUG, f"One does not simply recruit from None, skipping.")
+            time.sleep(30)
+            return False
         return True
 
 # Return true if a nation name contains bad words - likely to get No Such Nation errors and waste 180 seconds
