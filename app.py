@@ -587,9 +587,16 @@ def find_next_target():
     options = ['founding', 'refounding', 'ejected']
     weight = [config["recruiting"]["ratio"]["found"], config["recruiting"]["ratio"]["refound"], config["recruiting"]["ratio"]["ejected"]]
     selected = random.choices(options, weights=weight, k=1)[0]
+
     if selected == "founding":
         time.sleep(0.1) # To prevent API spamming
-        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
+        try:
+            request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
+        except Exception as e:
+            print(f"An error has occured({e}). Waiting 30 seconds before trying again.")
+            logger.log(logging.ERROR, f"An error has occured({e}). Waiting 30 seconds before trying again.")
+            time.sleep(30)
+            return find_next_target()
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -613,7 +620,13 @@ def find_next_target():
             return find_next_target()
     elif selected == "refounding":
         time.sleep(0.1)
-        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
+        try:
+            request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=founding;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
+        except Exception as e:
+            print(f"An error has occured({e}). Waiting 30 seconds before trying again.")
+            logger.log(logging.ERROR, f"An error has occured({e}). Waiting 30 seconds before trying again.")
+            time.sleep(30)
+            return find_next_target()
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -637,7 +650,13 @@ def find_next_target():
             return find_next_target()
     elif selected == "ejected":
         time.sleep(0.1) # To prevent API spamming
-        request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
+        try:
+            request = requests.get("https://www.nationstates.net/cgi-bin/api.cgi?q=happenings;filter=eject;limit=50", headers=REQUESTS_HEADER, timeout=REQ_TIMEOUT)
+        except Exception as e:
+            print(f"An error has occured({e}). Waiting 30 seconds before trying again.")
+            logger.log(logging.ERROR, f"An error has occured({e}). Waiting 30 seconds before trying again.")
+            time.sleep(30)
+            return find_next_target()
         if request.status_code == 200:
             world = ET.fromstring(request.text)
             happenings = world.find("HAPPENINGS")
@@ -658,6 +677,7 @@ def find_next_target():
             time.sleep(30)
             print("Unable to locate any new ejected nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
             return find_next_target()
+
 
 # Send Telegram
 def send_telegram(telegram_target):
