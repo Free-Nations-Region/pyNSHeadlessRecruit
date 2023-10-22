@@ -699,16 +699,17 @@ def send_telegram(telegram_target):
             time.sleep(wait_time)
             return send_telegram(current_target)
         logger.log(logging.INFO, f"Sent telegram to {current_target}, got {request.status_code}.")
+        tg_amt += 1
     except Exception as e:
         print(f"Tried to send telegram to {current_target}, but got error: {e}")
         logger.log(logging.ERROR, f"Tried to send telegram to {current_target}, but got error: {e}")
     finally:
-        tg_amt += 1
         tg_sent_history.append(current_target)
         if telegram["type"] == "Recruitment":
             time.sleep(RECRUITMENT_TELEGRAM_RATELIMIT)
         else:
             time.sleep(NONRECRUITMENT_TELEGRAM_RATELIMIT)
+    return True
 
 # Cleanse the nation given filters - if they fail the filters they will not be recruited
 # True means go on to recruit, False means do not recruit and try another
