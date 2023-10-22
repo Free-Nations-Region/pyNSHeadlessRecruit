@@ -677,6 +677,7 @@ def find_next_target():
             time.sleep(30)
             print("Unable to locate any new ejected nations. You may try turning off Optimization. Waiting 30 seconds before trying again.")
             return find_next_target()
+    return None
 
 
 # Send Telegram
